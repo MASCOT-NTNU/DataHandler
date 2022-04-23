@@ -14,9 +14,12 @@ class SINMOD:
         self.load_sinmod_data()
         pass
 
-    def load_sinmod_data(self, average=True, raw_data=False, save_data=False):
+    def load_sinmod_data(self, average=True, raw_data=False, save_data=False, filenames=False):
         if raw_data:
-            self.sinmod_files = list(fd.askopenfilenames())
+            if not filenames:
+                self.sinmod_files = list(fd.askopenfilenames())
+            else:
+                self.sinmod_files = filenames
             # TODO add more generalised data handler to deal with different file extensions
             if len(self.sinmod_files) > 1:
                 if average:
@@ -63,7 +66,7 @@ class SINMOD:
         t2 = time.time()
         print("Finished data reorganising... Time consumed: ", t2 - t1)
 
-    def get_data_at_coordinates(self, coordinates):
+    def get_data_at_coordinates(self, coordinates, filename=False):
         print("Start interpolating...")
         self.reorganise_sinmod_data()
         lat_sinmod = self.data_sinmod[:, 0]
@@ -103,7 +106,10 @@ class SINMOD:
         self.salinity_interpolated = vectorise(salinity_sinmod[self.ind_interpolated])
         self.dataset_interpolated = pd.DataFrame(np.hstack((coordinates, self.salinity_interpolated)), columns = ["lat", "lon", "depth", "salinity"])
         t2 = time.time()
-        filename = fd.asksaveasfilename()
+        if not filename:
+            filename = fd.asksaveasfilename()
+        else:
+            filename = filename
         self.dataset_interpolated.to_csv(filename, index=False)
         te = time.time()
         print("Data is interpolated successfully! Time consumed: ", te - ts)
