@@ -8,7 +8,12 @@ import os
 import re
 import warnings
 import pandas as pd
+import numpy as np
 import time
+from usr_func import xy2latlon, vectorise
+from datetime import datetime
+import matplotlib.pyplot as plt
+
 
 
 class AUVData:
@@ -33,9 +38,38 @@ class AUVData:
     def organise_data(self):
         self.coordinates = self.data['EstimatedState']
         self.salinity = self.data['Salinity']
-        self.depth = self.data['Depth']
         self.temperature = self.data['Temperature']
-        pass
+
+        self.lat_origin = np.rad2deg(self.coordinates[' lat (rad)'].mean())
+        self.lon_origin = np.rad2deg(self.coordinates[' lon (rad)'].mean())
+
+        self.x = self.coordinates[' x (m)'].groupby(self.coordinates.iloc[:, 0]).mean()
+        self.y = self.coordinates[' y (m)'].groupby(self.coordinates.iloc[:, 0]).mean()
+        self.z = self.coordinates[' z (m)'].groupby(self.coordinates.iloc[:, 0]).mean()
+        self.depth = self.coordinates[' depth (m)'].groupby(self.coordinates.iloc[:, 0]).mean()
+
+    def synchronise_salinity_data(self):
+        t1 = time.time()
+        self.time_coordinates = self.coordinates.iloc[:, 0].to_numpy()
+        self.time_salinity = self.salinity.iloc[:, 0].to_numpy()
+
+        self.data_sync = []
+        dm = (vectorise(self.time_salinity) @ np.ones([1, len(self.time_coordinates)]) -
+              np.ones([len(self.time_salinity), 1]) @ vectorise(self.time_coordinates).T)
+        self.ind_sync = np.argmin(dm, axis=1)
+        print(self.ind_sync)
+        # for i in range(len(self.time_coordinates)):
+        #     if (np.any(self.time_salinity.isin([self.time_coordinates.iloc[i]])) and
+        #             np.any(self.time_temperature.isin(self.time_coordinates.iloc[i]))):
+        #         lat, lon = xy2latlon(self.x.iloc[i], self.y.iloc[i], self.lat_origin, self.lon_origin)
+        #         self.data_sync.append([self.time_coordinates.iloc[i], lat, lon, self.z.iloc[i], self.salinity.iloc[i]])
+        #     else:
+        #         print(datetime.fromtimestamp(self.time_coordinates.iloc[i]))
+        #         continue
+        t2 = time.time()
+        print("Data is synchronised, time consumed: ",t2 - t1)
+
+
 
 
 if __name__ == "__main__":
@@ -44,14 +78,11 @@ if __name__ == "__main__":
     ad = AUVData()
     ad.load_raw_data(datapath=datapath)
     ad.organise_data()
+    ad.synchronise_salinity_data()
 
 #%%
-d = {}
-if not d:
-    print("h");
-else: print("f")
 
-import matplotlib.pyplot as plt
-
-plt.plot()
+plt.plot(ad.time_temperature)
 plt.show()
+
+
