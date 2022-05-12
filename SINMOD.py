@@ -21,7 +21,7 @@ class SINMOD:
             else:
                 self.sinmod_files = filenames
             # TODO add more generalised data handler to deal with different file extensions
-            if len(self.sinmod_files) > 1:
+            if len(self.sinmod_files) > 0:
                 if average:
                     self.salinity_sinmod_average = []
                     t1 = time.time()
