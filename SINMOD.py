@@ -5,13 +5,27 @@ Contact: yaolin.ge@ntnu.no
 Date: 2022-02-23
 """
 import os
+import tkinter as tk
+root = tk.Tk()
+root.withdraw()
 from tkinter import filedialog as fd
 from usr_func import *
+from numba import vectorize
+import multiprocessing as mp
+
+
+# @vectorize(['float32(float32, float32)'])
+def get_distance_matrix(x, y):
+    x = np.array(x).reshape(-1, 1)
+    y = np.array(y).reshape(-1, 1)
+    dx = np.dot(x, np.ones([1, len(y)]))
+    dy = np.dot(np.ones([len(x), 1]), y.T)
+    return dx - dy
 
 
 class SINMOD:
     def __init__(self):
-        self.load_sinmod_data()
+        # self.load_sinmod_data()
         pass
 
     def load_sinmod_data(self, average=True, raw_data=False, save_data=False, filenames=False):
@@ -67,6 +81,7 @@ class SINMOD:
         print("Finished data reorganising... Time consumed: ", t2 - t1)
 
     def get_data_at_coordinates(self, coordinates, filename=False):
+        # self.pool = mp.Pool(3)
         print("Start interpolating...")
         self.reorganise_sinmod_data()
         lat_sinmod = self.data_sinmod[:, 0]
@@ -83,16 +98,30 @@ class SINMOD:
         x_sinmod, y_sinmod = latlon2xy(lat_sinmod, lon_sinmod, 0, 0)
         x_coordinates, y_coordinates, depth_coordinates, x_sinmod, y_sinmod, depth_sinmod = \
             map(vectorise, [x_coordinates, y_coordinates, self.depth_coordinates, x_sinmod, y_sinmod, depth_sinmod])
+        print("Launching multiprocessing")
         t1 = time.time()
-        self.DistanceMatrix_x = x_coordinates @ np.ones([1, len(x_sinmod)]) - np.ones([len(x_coordinates), 1]) @ x_sinmod.T
+        # dm_x = self.pool.apply_async(get_distance_matrix, args=(x_coordinates, x_sinmod))
+        # dm_y = self.pool.apply_async(get_distance_matrix, args=(y_coordinates, y_sinmod))
+        # dm_d = self.pool.apply_async(get_distance_matrix, args=(depth_coordinates, depth_sinmod))
+        t2 = time.time()
+        print("Multiprocess takes: ", t2 - t1)
+
+        t1 = time.time()
+        # self.DistanceMatrix_x = dm_x.get()
+        self.DistanceMatrix_x = get_distance_matrix(x_coordinates, x_sinmod)
+        # self.DistanceMatrix_x = x_coordinates @ np.ones([1, len(x_sinmod)]) - np.ones([len(x_coordinates), 1]) @ x_sinmod.T
         t2 = time.time()
         print("Distance matrix - x finished, time consumed: ", t2 - t1)
         t1 = time.time()
-        self.DistanceMatrix_y = y_coordinates @ np.ones([1, len(y_sinmod)]) - np.ones([len(y_coordinates), 1]) @ y_sinmod.T
+        # self.DistanceMatrix_y = dm_y.get()
+        self.DistanceMatrix_y = get_distance_matrix(y_coordinates, y_sinmod)
+        # self.DistanceMatrix_y = y_coordinates @ np.ones([1, len(y_sinmod)]) - np.ones([len(y_coordinates), 1]) @ y_sinmod.T
         t2 = time.time()
         print("Distance matrix - y finished, time consumed: ", t2 - t1)
         t1 = time.time()
-        self.DistanceMatrix_depth = depth_coordinates @ np.ones([1, len(depth_sinmod)]) - np.ones([len(depth_coordinates), 1]) @ depth_sinmod.T
+        # self.DistanceMatrix_depth = dm_d.get()
+        self.DistanceMatrix_depth = get_distance_matrix(depth_coordinates, depth_sinmod)
+        # self.DistanceMatrix_depth = depth_coordinates @ np.ones([1, len(depth_sinmod)]) - np.ones([len(depth_coordinates), 1]) @ depth_sinmod.T
         t2 = time.time()
         print("Distance matrix - depth finished, time consumed: ", t2 - t1)
         t1 = time.time()
@@ -120,6 +149,67 @@ if __name__ == "__main__":
     # sinmod.average_all_sinmod_data()
 
 
+#%%
+# import os
+# import numpy as np
+# import pyopencl as cl
+#
+# platform = cl.get_platforms()[0]
+# GPUs = platform.get_devices()
+# for GPU in GPUs:
+#     if "AMD" in GPU.name:
+#         break
+#
+# # Test GPU capability
+# context = cl.Context(devices=[GPU])
+# queue = cl.CommandQueue(context)
+# mf = cl.mem_flags
+#
+# N = 1000000
+# x = np.arange(N).astype(np.float32)
+# y = np.arange(N).astype(np.float32)
+# dm = np.empty_like(x)
+#
+# X = cl.Buffer(context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=x)
+# Y = cl.Buffer(context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=y)
+# DM = cl.Buffer(context, mf.WRITE_ONLY, x.nbytes)
+#
+# program = cl.Program(context, """
+# __kernel void DistanceMatrix(__global const float *X, __global const float *Y, __global float *DM)
+# {
+# int i = get_global_id(0);
+# DM[i] = (X[i] - Y[i]) * (X[i] - Y[i]);
+# }
+# """).build()
+#
+# program.DistanceMatrix(queue, x.shape, None, X, Y, DM)
+# cl._enqueue_read_buffer(queue, DM, dm).wait()
+#
+# print("finished")
+# os.system("say finished")
+#
+# #%%
+# from scipy.spatial import distance_matrix
+# distance_matrix()
 
 
+#%%
+# @vectorize(['float32(float32, float32)'])
+# def asum(x, y):
+#     return x ** 2 + y ** 2
+#
+# N = 1000000000
+# x = np.random.rand(N, 1).astype(np.float32)
+# y = np.random.rand(N, 1).astype(np.float32)
+# s = asum(x, y)
+# t1 = time.time()
+# s = asum(x, y)
+# t2 = time.time()
+# print("Time consumed: ", t2 - t1)
+#
+#
+# t1 = time.time()
+# s = x**2 + y**2
+# t2 = time.time()
+# print("Time consumed: ", t2 - t1)
 

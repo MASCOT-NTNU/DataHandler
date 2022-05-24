@@ -14,15 +14,28 @@ from usr_func import xy2latlon, vectorise
 from datetime import datetime
 import matplotlib.pyplot as plt
 
+# import pyopencl as cl
+#
+# platform = cl.get_platforms()[0]
+# GPUs = platform.get_devices()
+# for GPU in GPUs:
+#     if "AMD" in GPU.name:
+#         break
+#
+# Test GPU capability
+# ctx = cl.Context(devices=[GPU])
+# queue = cl.CommandQueue(ctx)
 
 
 class AUVData:
 
-    def __init__(self):
-        pass
+    def __init__(self, datapath):
+        self.load_raw_data(datapath)
+        self.organise_data()
 
     def load_raw_data(self, datapath=None):
         t1 = time.time()
+        self.datapath = datapath
         filenames = os.listdir(datapath)
         self.data = dict()
         for file in filenames:
@@ -38,51 +51,63 @@ class AUVData:
     def organise_data(self):
         self.coordinates = self.data['EstimatedState']
         self.salinity = self.data['Salinity']
-        self.temperature = self.data['Temperature']
+        self.temp = self.data['Temperature']
+        self.temperature = self.temp[self.temp[' entity '] == 73]
 
-        self.lat_origin = np.rad2deg(self.coordinates[' lat (rad)'].mean())
-        self.lon_origin = np.rad2deg(self.coordinates[' lon (rad)'].mean())
+        self.lat_origin = np.rad2deg(self.coordinates[' lat (rad)'])
+        self.lon_origin = np.rad2deg(self.coordinates[' lon (rad)'])
 
-        self.x = self.coordinates[' x (m)'].groupby(self.coordinates.iloc[:, 0]).mean()
-        self.y = self.coordinates[' y (m)'].groupby(self.coordinates.iloc[:, 0]).mean()
-        self.z = self.coordinates[' z (m)'].groupby(self.coordinates.iloc[:, 0]).mean()
-        self.depth = self.coordinates[' depth (m)'].groupby(self.coordinates.iloc[:, 0]).mean()
+        self.x = self.coordinates[' x (m)']
+        self.y = self.coordinates[' y (m)']
+        # self.z = self.coordinates[' z (m)']
+        self.depth = self.coordinates[' depth (m)']
 
     def synchronise_salinity_data(self):
         t1 = time.time()
         self.time_coordinates = self.coordinates.iloc[:, 0].to_numpy()
         self.time_salinity = self.salinity.iloc[:, 0].to_numpy()
 
-        self.data_sync = []
-        dm = (vectorise(self.time_salinity) @ np.ones([1, len(self.time_coordinates)]) -
-              np.ones([len(self.time_salinity), 1]) @ vectorise(self.time_coordinates).T)
-        self.ind_sync = np.argmin(dm, axis=1)
-        print(self.ind_sync)
-        # for i in range(len(self.time_coordinates)):
-        #     if (np.any(self.time_salinity.isin([self.time_coordinates.iloc[i]])) and
-        #             np.any(self.time_temperature.isin(self.time_coordinates.iloc[i]))):
-        #         lat, lon = xy2latlon(self.x.iloc[i], self.y.iloc[i], self.lat_origin, self.lon_origin)
-        #         self.data_sync.append([self.time_coordinates.iloc[i], lat, lon, self.z.iloc[i], self.salinity.iloc[i]])
-        #     else:
-        #         print(datetime.fromtimestamp(self.time_coordinates.iloc[i]))
-        #         continue
+        self.dm1 = vectorise(self.time_salinity) @ np.ones([1, len(self.time_coordinates)])
+        print("S1: Finished DM1, time consumed: ", time.time() - t1)
+        os.system("say Finished data sync 1")
+        self.dm2 = np.ones([len(self.time_salinity), 1]) @ vectorise(self.time_coordinates).T
+        print("S2: Finished DM2, time consumed: ", time.time() - t1)
+        os.system("say Finished data sync 2")
+        self.dm = (self.dm1 - self.dm2) ** 2
+        print("S3: Finished DM, time consumed: ", time.time() - t1)
+        os.system("say Finished data sync 3")
+        self.ind_sync = np.argmin(self.dm, axis=1)
+        print("S4: Finished ind searching, time consumed: ", time.time() - t1)
+        os.system("say Finished data sync all")
+
+        x = self.x[self.ind_sync]
+        y = self.y[self.ind_sync]
+        depth = self.depth[self.ind_sync]
+        lat, lon = xy2latlon(x, y, self.lat_origin[self.ind_sync], self.lon_origin[self.ind_sync])
+
+        dataset = np.vstack((self.time_salinity, lat, lon, depth, self.salinity.iloc[:, -1].to_numpy(),
+                             self.temperature.iloc[:, -1])).T
+        df = pd.DataFrame(dataset, columns=['timestamp', 'lat', 'lon', 'depth', 'salinity', 'temperature'])
+        df.to_csv(self.datapath + "../data_sync.csv", index=False)
         t2 = time.time()
-        print("Data is synchronised, time consumed: ",t2 - t1)
+        print("Data is synchronised, time consumed: ", t2 - t1)
+        # TODO: add something
 
-
+    def check_auvdata(self):
+        datapath = self.datapath
+        # datapath = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/20220511/GOOGLE/RawData/"
+        self.load_raw_data(datapath)
+        self.organise_data()
+        self.synchronise_salinity_data()
 
 
 if __name__ == "__main__":
-    # datapath = '/'
-    datapath = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/20220511/GOOGLE/"
-    ad = AUVData()
-    ad.load_raw_data(datapath=datapath)
-    ad.organise_data()
+    datapath = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/20220511/MAFIA/RawData/"
+    ad = AUVData(datapath)
     ad.synchronise_salinity_data()
+    # ad.check_auvdata()
 
-#%%
 
-plt.plot(ad.time_temperature)
-plt.show()
+
 
 
