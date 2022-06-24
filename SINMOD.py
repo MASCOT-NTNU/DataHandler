@@ -5,10 +5,6 @@ Contact: yaolin.ge@ntnu.no
 Date: 2022-02-23
 """
 import os
-import tkinter as tk
-root = tk.Tk()
-root.withdraw()
-from tkinter import filedialog as fd
 from usr_func import *
 from numba import vectorize
 import multiprocessing as mp
@@ -29,6 +25,10 @@ class SINMOD:
         pass
 
     def load_sinmod_data(self, average=True, raw_data=False, save_data=False, filenames=False):
+        import tkinter as tk
+        root = tk.Tk()
+        root.withdraw()
+        from tkinter import filedialog as fd
         if raw_data:
             if not filenames:
                 self.sinmod_files = list(fd.askopenfilenames())

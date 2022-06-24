@@ -98,15 +98,15 @@ class AUVData:
         # datapath = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/20220511/GOOGLE/RawData/"
         self.load_raw_data(datapath)
         self.organise_data()
-        self.synchronise_salinity_data()
+        # self.synchronise_salinity_data()
 
 
 if __name__ == "__main__":
-    datapath = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/20220511/MAFIA/RawData/"
+    # datapath = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/20220511/MAFIA/RawData/"
+    datapath = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/20220510/"
     ad = AUVData(datapath)
-    ad.synchronise_salinity_data()
+    # ad.synchronise_salinity_data()
     # ad.check_auvdata()
-
 
 
 
