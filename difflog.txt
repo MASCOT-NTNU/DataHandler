@@ -1,0 +1,349 @@
+Only in .: .DS_Store
+Only in ./.git: COMMIT_EDITMSG
+Only in ./.git: FETCH_HEAD
+Only in ./.git: HEAD
+Only in ./.git: ORIG_HEAD
+Only in ./.git: config
+Only in ./.git: description
+Only in ./.git/hooks: applypatch-msg.sample
+Only in ./.git/hooks: commit-msg.sample
+Only in ./.git/hooks: fsmonitor-watchman.sample
+Only in ./.git/hooks: post-update.sample
+Only in ./.git/hooks: pre-applypatch.sample
+Only in ./.git/hooks: pre-commit.sample
+Only in ./.git/hooks: pre-merge-commit.sample
+Only in ./.git/hooks: pre-push.sample
+Only in ./.git/hooks: pre-rebase.sample
+Only in ./.git/hooks: pre-receive.sample
+Only in ./.git/hooks: prepare-commit-msg.sample
+Only in ./.git/hooks: push-to-checkout.sample
+Only in ./.git/hooks: update.sample
+Only in ./.git: index
+Only in ./.git/info: exclude
+Only in ./.git/logs: HEAD
+Only in ./.git/logs/refs/heads: master
+Only in ./.git/logs/refs/remotes/origin: HEAD
+Only in ./.git/logs/refs/remotes/origin: master
+Only in ./.git/objects: 04
+Only in ./.git/objects: 05
+Only in ./.git/objects: 08
+Only in ./.git/objects: 12
+Only in ./.git/objects: 1a
+Only in ./.git/objects/1d: 2d50497c3e80c3d76b3b90f017274b857a06b4
+Only in ./.git/objects: 29
+Only in ./.git/objects: 2a
+Only in ./.git/objects: 2e
+Only in ./.git/objects: 32
+Only in ./.git/objects: 33
+Only in /Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Projects/DataHandler/./.git/objects: 39
+Only in ./.git/objects: 48
+Only in ./.git/objects: 4e
+Only in ./.git/objects: 51
+Only in ./.git/objects/5d: 98a599a5f5bc1f1633b942ccbedd03884eedc3
+Only in ./.git/objects: 6c
+Only in ./.git/objects: 6d
+Only in ./.git/objects/77: b2d23172cfcdfe881b4453ba4fea82aa2252dd
+Only in /Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Projects/DataHandler/./.git/objects: 7d
+Only in /Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Projects/DataHandler/./.git/objects: 7f
+Only in ./.git/objects: 97
+Only in ./.git/objects/9f: 4a1997cab5ea05cfb351f026971ed4029ac8f4
+Only in /Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Projects/DataHandler/./.git/objects: a3
+Only in ./.git/objects/ad: 492d1cc1d00803fcb6d3deec8586e9546f8b77
+Only in ./.git/objects: ba
+Only in ./.git/objects: ce
+Only in /Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Projects/DataHandler/./.git/objects: d6
+Only in ./.git/objects: d7
+Only in ./.git/objects: dc
+Only in ./.git/objects: e4
+Only in /Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Projects/DataHandler/./.git/objects: e6
+Only in ./.git/objects: ea
+Only in /Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Projects/DataHandler/./.git/objects: ed
+Only in /Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Projects/DataHandler/./.git/objects: ef
+Only in ./.git/objects: fa
+Only in ./.git/objects/pack: pack-f26b0fab24125f054c9947cfdac5b7fbd5aa79dd.idx
+Only in ./.git/objects/pack: pack-f26b0fab24125f054c9947cfdac5b7fbd5aa79dd.pack
+Only in ./.git: packed-refs
+Only in ./.git/refs/heads: master
+Only in ./.git/refs/remotes/origin: HEAD
+Only in ./.git/refs/remotes/origin: master
+diff -r ./.gitignore /Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Projects/DataHandler/./.gitignore
+3a4
+> *.gitignore
+5a7,9
+> Sigma_sal.txt
+> *samples_2020.05.01.nc
+> *Onboard.zip
+7c11
+< **/fig
+---
+> *Prior_*.txt
+Only in .: AUVData.py
+Only in .: README.md
+diff -r ./SINMOD.py /Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Projects/DataHandler/./SINMOD.py
+8,14d7
+< 
+< import matplotlib.pyplot as plt
+< 
+< from usr_func import *
+< from numba import vectorize
+< import multiprocessing as mp
+< import tkinter as tk
+16,25c9
+< SINMOD_MAX_DEPTH_LAYER = 8
+< 
+< 
+< # @vectorize(['float32(float32, float32)'])
+< def get_distance_matrix(x, y):
+<     x = np.array(x).reshape(-1, 1)
+<     y = np.array(y).reshape(-1, 1)
+<     dx = np.dot(x, np.ones([1, len(y)]))
+<     dy = np.dot(np.ones([len(x), 1]), y.T)
+<     return dx - dy
+---
+> from usr_func import *
+30c14
+<         # self.load_sinmod_data()
+---
+>         self.load_sinmod_data()
+33,35c17
+<     def load_sinmod_data(self, average=True, raw_data=False, save_data=False, filenames=False):
+<         root = tk.Tk()
+<         root.withdraw()
+---
+>     def load_sinmod_data(self, average=True, raw_data=False, save_data=False):
+37,40c19
+<             if not filenames:
+<                 self.sinmod_files = list(fd.askopenfilenames())
+<             else:
+<                 self.sinmod_files = filenames
+---
+>             self.sinmod_files = list(fd.askopenfilenames())
+42c21
+<             if len(self.sinmod_files) > 0:
+---
+>             if len(self.sinmod_files) > 1:
+63c42
+<                     print("Data loading time consumed: ", t2 - t1)
+---
+>                     print("Time consumed: ", t2 - t1)
+65,89c44
+<                     print("Here comes not averaging part!")
+<                     if len(self.sinmod_files) == 1:
+<                         t1 = time.time()
+<                         for file in self.sinmod_files:
+<                             if file.endswith(".nc"):
+<                                 print(file)
+<                                 ind_before = re.search("samples_", file)
+<                                 ind_after = re.search(".nc", file)
+<                                 self.date_string = file[ind_before.end():ind_after.start()]
+<                                 print(self.date_string)
+<                                 self.sinmod = netCDF4.Dataset(file)
+<                                 ref_timestamp = datetime.strptime(self.date_string, "%Y.%m.%d").timestamp()
+<                                 self.timestamp = np.array(
+<                                     self.sinmod["time"]) * 24 * 3600 + ref_timestamp  # change ref timestamp
+<                                 self.lat_sinmod = np.array(self.sinmod['gridLats'])
+<                                 self.lon_sinmod = np.array(self.sinmod['gridLons'])
+<                                 self.depth_sinmod = np.array(self.sinmod['zc'])[:SINMOD_MAX_DEPTH_LAYER]
+<                                 self.salinity_sinmod = np.array(self.sinmod['salinity'])[:, :SINMOD_MAX_DEPTH_LAYER, :, :]
+<                         t2 = time.time()
+<                         print("Data loading time consumed: ", t2 - t1)
+<                         pass
+<                     else:
+<                         raise NotImplementedError("Select only one datafile at each time!")
+<                         pass
+<                         # TODO: add not average part
+---
+>                     # TODO: add not average part
+111,112c66
+<     def get_data_at_coordinates(self, coordinates, filename=False):
+<         # self.pool = mp.Pool(3)
+---
+>     def get_data_at_coordinates(self, coordinates):
+129d82
+<         print("Launching multiprocessing")
+131,140c84
+<         # dm_x = self.pool.apply_async(get_distance_matrix, args=(x_coordinates, x_sinmod))
+<         # dm_y = self.pool.apply_async(get_distance_matrix, args=(y_coordinates, y_sinmod))
+<         # dm_d = self.pool.apply_async(get_distance_matrix, args=(depth_coordinates, depth_sinmod))
+<         t2 = time.time()
+<         print("Multiprocess takes: ", t2 - t1)
+< 
+<         t1 = time.time()
+<         # self.DistanceMatrix_x = dm_x.get()
+<         self.DistanceMatrix_x = get_distance_matrix(x_coordinates, x_sinmod)
+<         # self.DistanceMatrix_x = x_coordinates @ np.ones([1, len(x_sinmod)]) - np.ones([len(x_coordinates), 1]) @ x_sinmod.T
+---
+>         self.DistanceMatrix_x = x_coordinates @ np.ones([1, len(x_sinmod)]) - np.ones([len(x_coordinates), 1]) @ x_sinmod.T
+144,146c88
+<         # self.DistanceMatrix_y = dm_y.get()
+<         self.DistanceMatrix_y = get_distance_matrix(y_coordinates, y_sinmod)
+<         # self.DistanceMatrix_y = y_coordinates @ np.ones([1, len(y_sinmod)]) - np.ones([len(y_coordinates), 1]) @ y_sinmod.T
+---
+>         self.DistanceMatrix_y = y_coordinates @ np.ones([1, len(y_sinmod)]) - np.ones([len(y_coordinates), 1]) @ y_sinmod.T
+150,152c92
+<         # self.DistanceMatrix_depth = dm_d.get()
+<         self.DistanceMatrix_depth = get_distance_matrix(depth_coordinates, depth_sinmod)
+<         # self.DistanceMatrix_depth = depth_coordinates @ np.ones([1, len(depth_sinmod)]) - np.ones([len(depth_coordinates), 1]) @ depth_sinmod.T
+---
+>         self.DistanceMatrix_depth = depth_coordinates @ np.ones([1, len(depth_sinmod)]) - np.ones([len(depth_coordinates), 1]) @ depth_sinmod.T
+166,169c106
+<         if not filename:
+<             filename = fd.asksaveasfilename()
+<         else:
+<             filename = filename
+---
+>         filename = fd.asksaveasfilename()
+174,192d110
+<     def get_sinmod_at_time_coordinates(self, data=None):
+<         if data is not None:
+<             timestamp = data[:, 0]
+<             lat = data[:, 1]
+<             lon = data[:, 2]
+<             depth = data[:, 3]
+< 
+< 
+< 
+<             pass
+<         pass
+< 
+<     def check_get_timestamp(self):
+<         # path_auv = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/202205110/d.csv"
+<         path_auv = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/20220510/d.csv"
+<         self.data_auv = pd.read_csv(path_auv).to_numpy()
+< 
+<         pass
+< 
+195,197c113
+<     s = SINMOD()
+<     s.load_sinmod_data(average=False, raw_data=True)
+<     s.check_get_timestamp()
+---
+>     sinmod = SINMOD()
+200,201d115
+< #%%
+< self = s
+203,321c117,118
+< timestamp = self.data_auv[:, 0]
+< lat = self.data_auv[:, 1]
+< lon = self.data_auv[:, 2]
+< depth = self.data_auv[:, 3]
+< 
+< DM_time = (vectorise(timestamp) @ np.ones([1, len(self.timestamp)]) -
+<            np.ones([len(timestamp), 1]) @ vectorise(self.timestamp).T) ** 2
+< 
+< DM_depth = (vectorise(depth) @ np.ones([1, len(self.depth_sinmod)]) -
+<            np.ones([len(depth), 1]) @ vectorise(self.depth_sinmod).T) ** 2
+< 
+< lat_o = 63.4269097
+< lon_o = 10.3969375
+< x_auv, y_auv = latlon2xy(lat, lon, lat_o, lon_o)
+< x_sinmod, y_sinmod = latlon2xy(self.lat_sinmod.flatten(), self.lon_sinmod.flatten(), lat_o, lon_o)
+< 
+< DM_x = (vectorise(x_auv) @ np.ones([1, len(x_sinmod)]) -
+<         np.ones([len(x_auv), 1]) @ vectorise(x_sinmod).T) ** 2
+< 
+< DM_y = (vectorise(y_auv) @ np.ones([1, len(y_sinmod)]) -
+<            np.ones([len(y_auv), 1]) @ vectorise(y_sinmod).T) ** 2
+< 
+< DM_xy = DM_x + DM_y
+< 
+< ind_time = np.argmin(DM_time, axis=1)
+< ind_depth = np.argmin(DM_depth, axis=1)
+< ind_d = np.argmin(DM_xy, axis=1)
+< 
+< sal = []
+< for i in range(len(ind_d)):
+<     print(i)
+<     id_t = ind_time[i]
+<     id_d = ind_depth[i]
+<     id_xy = ind_d[i]
+<     sal.append(self.salinity_sinmod[id_t, id_d].flatten()[id_xy])
+< 
+< #%%
+< s_auv = self.data_auv[:, -2]
+< r = s_auv - sal
+< #%%
+< plt.scatter(y_auv, x_auv, c=r, cmap=get_cmap("BrBG", 10), vmin=-4, vmax=4)
+< plt.colorbar()
+< plt.show()
+< #%%
+< plt.figure(figsize=(8,8))
+< plt.plot(sal, s_auv, 'k.')
+< plt.plot([10, 30], [10, 30], 'r-')
+< plt.xlabel("SINMOD")
+< plt.ylabel("AUV")
+< plt.xlim([10, 30])
+< plt.ylim([10, 30])
+< plt.title("AUV v.s. SINMOD")
+< plt.show()
+< 
+< 
+< 
+< #%%
+< # import os
+< # import numpy as np
+< # import pyopencl as cl
+< #
+< # platform = cl.get_platforms()[0]
+< # GPUs = platform.get_devices()
+< # for GPU in GPUs:
+< #     if "AMD" in GPU.name:
+< #         break
+< #
+< # # Test GPU capability
+< # context = cl.Context(devices=[GPU])
+< # queue = cl.CommandQueue(context)
+< # mf = cl.mem_flags
+< #
+< # N = 1000000
+< # x = np.arange(N).astype(np.float32)
+< # y = np.arange(N).astype(np.float32)
+< # dm = np.empty_like(x)
+< #
+< # X = cl.Buffer(context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=x)
+< # Y = cl.Buffer(context, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=y)
+< # DM = cl.Buffer(context, mf.WRITE_ONLY, x.nbytes)
+< #
+< # program = cl.Program(context, """
+< # __kernel void DistanceMatrix(__global const float *X, __global const float *Y, __global float *DM)
+< # {
+< # int i = get_global_id(0);
+< # DM[i] = (X[i] - Y[i]) * (X[i] - Y[i]);
+< # }
+< # """).build()
+< #
+< # program.DistanceMatrix(queue, x.shape, None, X, Y, DM)
+< # cl._enqueue_read_buffer(queue, DM, dm).wait()
+< #
+< # print("finished")
+< # os.system("say finished")
+< #
+< # #%%
+< # from scipy.spatial import distance_matrix
+< # distance_matrix()
+< 
+< 
+< #%%
+< # @vectorize(['float32(float32, float32)'])
+< # def asum(x, y):
+< #     return x ** 2 + y ** 2
+< #
+< # N = 1000000000
+< # x = np.random.rand(N, 1).astype(np.float32)
+< # y = np.random.rand(N, 1).astype(np.float32)
+< # s = asum(x, y)
+< # t1 = time.time()
+< # s = asum(x, y)
+< # t2 = time.time()
+< # print("Time consumed: ", t2 - t1)
+< #
+< #
+< # t1 = time.time()
+< # s = x**2 + y**2
+< # t2 = time.time()
+< # print("Time consumed: ", t2 - t1)
+---
+> 
+> 
+Only in .: __pycache__
+Only in .: difflog.txt

@@ -5,9 +5,15 @@ Contact: yaolin.ge@ntnu.no
 Date: 2022-02-23
 """
 import os
+
+import matplotlib.pyplot as plt
+
 from usr_func import *
 from numba import vectorize
 import multiprocessing as mp
+import tkinter as tk
+from tkinter import filedialog as fd
+SINMOD_MAX_DEPTH_LAYER = 8
 
 
 # @vectorize(['float32(float32, float32)'])
@@ -25,10 +31,8 @@ class SINMOD:
         pass
 
     def load_sinmod_data(self, average=True, raw_data=False, save_data=False, filenames=False):
-        import tkinter as tk
         root = tk.Tk()
         root.withdraw()
-        from tkinter import filedialog as fd
         if raw_data:
             if not filenames:
                 self.sinmod_files = list(fd.askopenfilenames())
@@ -56,9 +60,33 @@ class SINMOD:
                             self.salinity_sinmod_average.append(self.salinity_sinmod)
                     t2 = time.time()
                     self.salinity_sinmod_average = np.mean(np.array(self.salinity_sinmod_average), axis=0)
-                    print("Time consumed: ", t2 - t1)
+                    print("Data loading time consumed: ", t2 - t1)
                 else:
-                    # TODO: add not average part
+                    print("Here comes not averaging part!")
+                    if len(self.sinmod_files) == 1:
+                        t1 = time.time()
+                        for file in self.sinmod_files:
+                            if file.endswith(".nc"):
+                                print(file)
+                                ind_before = re.search("samples_", file)
+                                ind_after = re.search(".nc", file)
+                                self.date_string = file[ind_before.end():ind_after.start()]
+                                print(self.date_string)
+                                self.sinmod = netCDF4.Dataset(file)
+                                ref_timestamp = datetime.strptime(self.date_string, "%Y.%m.%d").timestamp()
+                                self.timestamp = np.array(
+                                    self.sinmod["time"]) * 24 * 3600 + ref_timestamp  # change ref timestamp
+                                self.lat_sinmod = np.array(self.sinmod['gridLats'])
+                                self.lon_sinmod = np.array(self.sinmod['gridLons'])
+                                self.depth_sinmod = np.array(self.sinmod['zc'])[:SINMOD_MAX_DEPTH_LAYER]
+                                self.salinity_sinmod = np.array(self.sinmod['salinity'])[:, :SINMOD_MAX_DEPTH_LAYER, :, :]
+                        t2 = time.time()
+                        print("Data loading time consumed: ", t2 - t1)
+                        pass
+                    else:
+                        raise NotImplementedError("Select only one datafile at each time!")
+                        pass
+                        # TODO: add not average part
                     pass
             else:
                 print(self.sinmod_files)
@@ -143,10 +171,89 @@ class SINMOD:
         te = time.time()
         print("Data is interpolated successfully! Time consumed: ", te - ts)
 
+    def get_sinmod_at_time_coordinates(self, data=None):
+        if data is not None:
+            timestamp = data[:, 0]
+            lat = data[:, 1]
+            lon = data[:, 2]
+            depth = data[:, 3]
+
+
+
+            pass
+        pass
+
+    def check_get_timestamp(self):
+        # path_auv = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/202205110/d.csv"
+        path_auv = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/20220510/d.csv"
+        self.data_auv = pd.read_csv(path_auv).to_numpy()
+
+        pass
+
 
 if __name__ == "__main__":
-    sinmod = SINMOD()
+    s = SINMOD()
+    s.load_sinmod_data(average=False, raw_data=True)
+    s.check_get_timestamp()
     # sinmod.average_all_sinmod_data()
+
+#%%
+self = s
+
+timestamp = self.data_auv[:, 0]
+lat = self.data_auv[:, 1]
+lon = self.data_auv[:, 2]
+depth = self.data_auv[:, 3]
+
+DM_time = (vectorise(timestamp) @ np.ones([1, len(self.timestamp)]) -
+           np.ones([len(timestamp), 1]) @ vectorise(self.timestamp).T) ** 2
+
+DM_depth = (vectorise(depth) @ np.ones([1, len(self.depth_sinmod)]) -
+           np.ones([len(depth), 1]) @ vectorise(self.depth_sinmod).T) ** 2
+
+lat_o = 63.4269097
+lon_o = 10.3969375
+x_auv, y_auv = latlon2xy(lat, lon, lat_o, lon_o)
+x_sinmod, y_sinmod = latlon2xy(self.lat_sinmod.flatten(), self.lon_sinmod.flatten(), lat_o, lon_o)
+
+DM_x = (vectorise(x_auv) @ np.ones([1, len(x_sinmod)]) -
+        np.ones([len(x_auv), 1]) @ vectorise(x_sinmod).T) ** 2
+
+DM_y = (vectorise(y_auv) @ np.ones([1, len(y_sinmod)]) -
+           np.ones([len(y_auv), 1]) @ vectorise(y_sinmod).T) ** 2
+
+DM_xy = DM_x + DM_y
+
+ind_time = np.argmin(DM_time, axis=1)
+ind_depth = np.argmin(DM_depth, axis=1)
+ind_d = np.argmin(DM_xy, axis=1)
+
+sal = []
+for i in range(len(ind_d)):
+    print(i)
+    id_t = ind_time[i]
+    id_d = ind_depth[i]
+    id_xy = ind_d[i]
+    sal.append(self.salinity_sinmod[id_t, id_d].flatten()[id_xy])
+
+#%%
+s_auv = self.data_auv[:, -2]
+r = s_auv - sal
+#%%
+plt.scatter(y_auv, x_auv, c=r, cmap=get_cmap("BrBG", 10), vmin=-4, vmax=4)
+plt.colorbar()
+plt.show()
+#%%
+plt.figure(figsize=(8,8))
+plt.plot(sal, s_auv, 'k.')
+plt.plot([10, 30], [10, 30], 'r-')
+plt.xlabel("SINMOD")
+plt.ylabel("AUV")
+plt.xlim([10, 30])
+plt.ylim([10, 30])
+plt.title("AUV v.s. SINMOD")
+plt.show()
+
 
 
 #%%
