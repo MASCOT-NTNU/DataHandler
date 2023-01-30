@@ -5,9 +5,7 @@ Contact: yaolin.ge@ntnu.no
 Date: 2022-02-23
 """
 import os
-
 import matplotlib.pyplot as plt
-
 from usr_func import *
 from numba import vectorize
 import multiprocessing as mp
@@ -177,9 +175,6 @@ class SINMOD:
             lat = data[:, 1]
             lon = data[:, 2]
             depth = data[:, 3]
-
-
-
             pass
         pass
 
@@ -187,14 +182,13 @@ class SINMOD:
         # path_auv = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/202205110/d.csv"
         path_auv = "/Users/yaolin/OneDrive - NTNU/MASCOT_PhD/Data/Nidelva/20220510/d.csv"
         self.data_auv = pd.read_csv(path_auv).to_numpy()
-
         pass
 
 
 if __name__ == "__main__":
     s = SINMOD()
     s.load_sinmod_data(average=False, raw_data=True)
-    s.check_get_timestamp()
+    # s.check_get_timestamp()
     # sinmod.average_all_sinmod_data()
 
 #%%

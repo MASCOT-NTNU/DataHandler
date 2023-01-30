@@ -4,15 +4,11 @@ Author: Yaolin Ge
 Contact: yaolin.ge@ntnu.no
 Date: 2022-05-12
 """
-import os
 import re
 import warnings
-import pandas as pd
-import numpy as np
-import time
+
 from usr_func import xy2latlon, vectorise
-from datetime import datetime
-import matplotlib.pyplot as plt
+
 
 # import pyopencl as cl
 #
@@ -107,7 +103,3 @@ if __name__ == "__main__":
     ad = AUVData(datapath)
     # ad.synchronise_salinity_data()
     # ad.check_auvdata()
-
-
-
-
